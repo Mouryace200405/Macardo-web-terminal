@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Settings, Terminal, ChevronRight } from 'lucide-react';
+import { Settings, Terminal } from 'lucide-react';
 import AnsiToHtml from '@/components/ansi-to-html';
 import SettingsMenu from '@/components/settings-menu';
 import { type Settings as AppSettings } from '@/types';
@@ -92,12 +92,12 @@ export default function EchoShellPage() {
 
   const handleCommandSubmit = useCallback(async (command: string) => {
     if (!command.trim()) {
-      setHistory(prev => [...prev, `\u001b[35m${cwd}\u001b[0m \u001b[36m>\u001b[0m `]);
+      setHistory(prev => [...prev, `\u001b[35m${cwd}\u001b[0m \u001b[36m¶\u001b[0m `]);
       return;
     }
 
     setIsExecuting(true);
-    setHistory(prev => [...prev, `\u001b[35m${cwd}\u001b[0m \u001b[36m>\u001b[0m ${command}`]);
+    setHistory(prev => [...prev, `\u001b[35m${cwd}\u001b[0m \u001b[36m¶\u001b[0m ${command}`]);
     
     // Simulate async execution
     await new Promise(res => setTimeout(res, 100 + Math.random() * 200));
@@ -155,7 +155,7 @@ export default function EchoShellPage() {
   const prompt = (
     <div className="flex-shrink-0 flex items-center">
       <span className="text-accent">{cwd}</span>
-      <ChevronRight className="w-4 h-4 text-cyan-400 mx-1" />
+      <span className="text-cyan-400 mx-1">¶</span>
     </div>
   );
 
