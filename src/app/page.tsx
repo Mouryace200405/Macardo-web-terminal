@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Settings, Terminal } from 'lucide-react';
 import AnsiToHtml from '@/components/ansi-to-html';
 import SettingsMenu from '@/components/settings-menu';
-import { type Settings as AppSettings } from '@/types';
+import { type Settings as AppSettings, type TerminalTheme } from '@/types';
 import { initialFileSystem } from '@/lib/file-system';
 import { processCommand } from '@/lib/commands';
 import { getCommandSuggestions } from './actions';
@@ -28,9 +28,14 @@ const useDebounce = <T extends (...args: any[]) => void>(
   );
 };
 
+const initialSettings: AppSettings = {
+    fontSize: 14,
+    theme: 'echo-shell',
+}
+
 export default function EchoShellPage() {
   const { toast } = useToast();
-  const [settings, setSettings] = useState<AppSettings>({ fontSize: 14 });
+  const [settings, setSettings] = useState<AppSettings>(initialSettings);
   const [history, setHistory] = useState<string[]>([]);
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [commandHistoryPointer, setCommandHistoryPointer] = useState(-1);
@@ -50,9 +55,12 @@ export default function EchoShellPage() {
       const savedSettings = localStorage.getItem('echo-shell-settings');
       if (savedSettings) {
         setSettings(JSON.parse(savedSettings));
+      } else {
+        setSettings(initialSettings);
       }
     } catch (error) {
       console.error('Failed to load settings from localStorage', error);
+      setSettings(initialSettings);
     }
     const welcomeMessage = processCommand('cat welcome.txt', cwd, fs);
     setHistory(welcomeMessage.output.split('\n'));
@@ -90,14 +98,37 @@ export default function EchoShellPage() {
     fetchSuggestions(input, commandHistory);
   }, [input, commandHistory, fetchSuggestions]);
 
+  const getPrompt = (theme: TerminalTheme, currentWorkingDirectory: string) => {
+    switch (theme) {
+      case 'powershell':
+        return (
+          <div className="flex-shrink-0 flex items-center">
+            <span className="text-blue-300">PS </span>
+            <span className="text-foreground">{currentWorkingDirectory.replace(/\//g, '\\')}></span>
+            <span className="text-foreground">&gt;</span>
+          </div>
+        );
+      case 'echo-shell':
+      default:
+        return (
+          <div className="flex-shrink-0 flex items-center">
+            <span className="text-accent">{currentWorkingDirectory}</span>
+            <span className="text-cyan-400 mx-1">¶</span>
+          </div>
+        );
+    }
+  };
+
   const handleCommandSubmit = useCallback(async (command: string) => {
+    const promptText = getPrompt(settings.theme, cwd).props.children.map((child: any) => child.props.children).join('');
+    
     if (!command.trim()) {
-      setHistory(prev => [...prev, `\u001b[35m${cwd}\u001b[0m \u001b[36m¶\u001b[0m `]);
+      setHistory(prev => [...prev, `${promptText} `]);
       return;
     }
 
     setIsExecuting(true);
-    setHistory(prev => [...prev, `\u001b[35m${cwd}\u001b[0m \u001b[36m¶\u001b[0m ${command}`]);
+    setHistory(prev => [...prev, `${promptText} ${command}`]);
     
     // Simulate async execution
     await new Promise(res => setTimeout(res, 100 + Math.random() * 200));
@@ -123,7 +154,7 @@ export default function EchoShellPage() {
     setInput('');
     setSuggestions([]);
     setIsExecuting(false);
-  }, [cwd, fs, toast]);
+  }, [cwd, fs, toast, settings.theme]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -152,12 +183,7 @@ export default function EchoShellPage() {
     }
   };
 
-  const prompt = (
-    <div className="flex-shrink-0 flex items-center">
-      <span className="text-accent">{cwd}</span>
-      <span className="text-cyan-400 mx-1">¶</span>
-    </div>
-  );
+  const prompt = getPrompt(settings.theme, cwd);
 
   return (
     <div

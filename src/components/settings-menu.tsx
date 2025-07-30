@@ -11,7 +11,8 @@ import {
 } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { type Settings } from '@/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { type Settings, type TerminalTheme } from '@/types';
 
 interface SettingsMenuProps {
   children: React.ReactNode;
@@ -26,11 +27,18 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ children, settings, onSetti
     setLocalSettings(settings);
   }, [settings]);
 
-  const handleFontSizeChange = (value: number[]) => {
-    const newSettings = { ...localSettings, fontSize: value[0] };
+  const updateSettings = (newSettings: Settings) => {
     setLocalSettings(newSettings);
     onSettingsChange(newSettings);
     localStorage.setItem('echo-shell-settings', JSON.stringify(newSettings));
+  }
+
+  const handleFontSizeChange = (value: number[]) => {
+    updateSettings({ ...localSettings, fontSize: value[0] });
+  };
+  
+  const handleThemeChange = (value: TerminalTheme) => {
+    updateSettings({ ...localSettings, theme: value });
   };
 
   return (
@@ -43,7 +51,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ children, settings, onSetti
             Customize the appearance of your Echo Shell.
           </SheetDescription>
         </SheetHeader>
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-6 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="font-size" className="text-right col-span-2">
               Font Size
@@ -59,6 +67,20 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ children, settings, onSetti
             onValueChange={handleFontSizeChange}
             className="col-span-4"
           />
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="theme" className="text-right col-span-2">
+              Theme
+            </Label>
+             <Select value={localSettings.theme} onValueChange={handleThemeChange}>
+                <SelectTrigger className="col-span-2">
+                  <SelectValue placeholder="Select theme" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="echo-shell">Echo Shell</SelectItem>
+                  <SelectItem value="powershell">Powershell</SelectItem>
+                </SelectContent>
+              </Select>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
