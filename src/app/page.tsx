@@ -63,8 +63,7 @@ export default function EchoShellPage() {
       console.error('Failed to load settings from localStorage', error);
       setSettings(initialSettings);
     }
-    const welcomeMessage = processCommand('cat welcome.txt', cwd, fs);
-    setHistory(welcomeMessage.output.split('\n'));
+    // Welcome message removed
   }, []);
 
   useEffect(() => {

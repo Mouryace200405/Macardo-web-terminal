@@ -34,11 +34,6 @@ export const initialFileSystem: FileSystem = {
                 'plan.md': {type: 'file', content: '1. Build terminal\n2. Add AI\n3. ???\n4. Profit'}
               },
             },
-            'welcome.txt': {
-              type: 'file',
-              content:
-                'Welcome to Echo Shell! Type `help` to see available commands.',
-            },
           },
         },
       },
