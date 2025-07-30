@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Settings, Terminal } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import AnsiToHtml from '@/components/ansi-to-html';
 import SettingsMenu from '@/components/settings-menu';
 import { type Settings as AppSettings, type TerminalTheme } from '@/types';
@@ -31,6 +31,7 @@ const useDebounce = <T extends (...args: any[]) => void>(
 const initialSettings: AppSettings = {
     fontSize: 14,
     theme: 'echo-shell',
+    cursorStyle: 'block',
 }
 
 export default function EchoShellPage() {
@@ -104,8 +105,8 @@ export default function EchoShellPage() {
         return (
           <div className="flex-shrink-0 flex items-center">
             <span className="text-blue-300">PS </span>
-            <span className="text-foreground">{currentWorkingDirectory.replace(/\//g, '\\')}></span>
-            <span className="text-foreground">&gt;</span>
+            <span className="text-foreground">{currentWorkingDirectory.replace(/\//g, '\\')}</span>
+            <span className="text-foreground">¶</span>
           </div>
         );
       case 'echo-shell':
@@ -185,6 +186,18 @@ export default function EchoShellPage() {
 
   const prompt = getPrompt(settings.theme, cwd);
 
+  const getCursorClass = () => {
+    switch(settings.cursorStyle) {
+      case 'underline': return 'caret-primary border-b-2 border-primary';
+      case 'bar': return 'caret-primary border-l-2 border-primary';
+      case 'block':
+      default:
+        return 'caret-transparent';
+    }
+  }
+
+  const cursorIsBlock = settings.cursorStyle === 'block';
+
   return (
     <div
       className="bg-background text-foreground font-code w-screen h-screen overflow-hidden flex flex-col transition-all duration-300"
@@ -193,8 +206,8 @@ export default function EchoShellPage() {
     >
       <header className="flex items-center justify-between p-2 bg-card/50 backdrop-blur-sm border-b border-border">
         <div className="flex items-center gap-2">
-          <Terminal className="w-5 h-5 text-accent" />
-          <h1 className="text-lg font-bold text-foreground">Echo Shell</h1>
+          <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">¶</span>
+          <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Macardo</h1>
         </div>
         <SettingsMenu settings={settings} onSettingsChange={setSettings}>
           <button className="p-2 rounded-md hover:bg-secondary">
@@ -211,19 +224,26 @@ export default function EchoShellPage() {
         ))}
         <div className="flex items-center mt-2">
             {prompt}
-            <div className="relative flex-grow">
+            <div className="relative flex-grow flex items-center">
                  <input
                     ref={inputRef}
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="bg-transparent border-none focus:ring-0 w-full p-0 ml-2"
+                    className={`bg-transparent border-none focus:ring-0 w-full p-0 ml-2 ${getCursorClass()}`}
                     autoComplete="off"
                     autoCapitalize="off"
                     autoCorrect="off"
                     disabled={isExecuting}
                 />
+                 {cursorIsBlock && !isExecuting && (
+                  <span className="bg-primary animate-pulse w-[1ch] h-[1.2em] inline-block absolute left-2"
+                   style={{
+                      transform: `translateX(${input.length}ch)`
+                   }}
+                  />
+                 )}
                 {suggestions.length > 0 && !isExecuting && (
                     <div className="absolute bottom-full left-2 mb-1 bg-card border border-border rounded-md p-1 text-sm shadow-lg flex gap-2">
                         {suggestions.map((s, i) => (

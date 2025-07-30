@@ -6,13 +6,13 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
   SheetDescription,
+  SheetTrigger,
 } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type Settings, type TerminalTheme } from '@/types';
+import { type Settings, type TerminalTheme, type CursorStyle } from '@/types';
 
 interface SettingsMenuProps {
   children: React.ReactNode;
@@ -27,18 +27,23 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ children, settings, onSetti
     setLocalSettings(settings);
   }, [settings]);
 
-  const updateSettings = (newSettings: Settings) => {
-    setLocalSettings(newSettings);
-    onSettingsChange(newSettings);
-    localStorage.setItem('echo-shell-settings', JSON.stringify(newSettings));
+  const updateSettings = (newSettings: Partial<Settings>) => {
+    const updated = { ...localSettings, ...newSettings };
+    setLocalSettings(updated);
+    onSettingsChange(updated);
+    localStorage.setItem('echo-shell-settings', JSON.stringify(updated));
   }
 
   const handleFontSizeChange = (value: number[]) => {
-    updateSettings({ ...localSettings, fontSize: value[0] });
+    updateSettings({ fontSize: value[0] });
   };
   
   const handleThemeChange = (value: TerminalTheme) => {
-    updateSettings({ ...localSettings, theme: value });
+    updateSettings({ theme: value });
+  };
+
+  const handleCursorChange = (value: CursorStyle) => {
+    updateSettings({ cursorStyle: value });
   };
 
   return (
@@ -48,7 +53,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ children, settings, onSetti
         <SheetHeader>
           <SheetTitle>Terminal Settings</SheetTitle>
           <SheetDescription>
-            Customize the appearance of your Echo Shell.
+            Customize the appearance of your Macardo Shell.
           </SheetDescription>
         </SheetHeader>
         <div className="grid gap-6 py-4">
@@ -78,6 +83,21 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ children, settings, onSetti
                 <SelectContent>
                   <SelectItem value="echo-shell">Echo Shell</SelectItem>
                   <SelectItem value="powershell">Powershell</SelectItem>
+                </SelectContent>
+              </Select>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="cursor" className="text-right col-span-2">
+              Cursor Style
+            </Label>
+             <Select value={localSettings.cursorStyle} onValueChange={handleCursorChange}>
+                <SelectTrigger className="col-span-2">
+                  <SelectValue placeholder="Select cursor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="block">Block</SelectItem>
+                  <SelectItem value="underline">Underline</SelectItem>
+                  <SelectItem value="bar">Bar</SelectItem>
                 </SelectContent>
               </Select>
           </div>

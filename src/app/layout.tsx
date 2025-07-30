@@ -3,7 +3,7 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Echo Shell',
+  title: 'Macardo',
   description: 'A terminal emulator built with Next.js and AI',
 };
 
